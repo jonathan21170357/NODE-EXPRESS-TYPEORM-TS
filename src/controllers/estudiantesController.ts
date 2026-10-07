@@ -1,4 +1,6 @@
 import { Request, Response } from "express";
+import { AppDataSource } from '../db/conexion';
+import { Estudiante } from "../models/estudianteModel";
 
 
 class estudiantesController {
@@ -6,45 +8,65 @@ class estudiantesController {
 
     }
 
-    consultar(req: Request, res: Response){
+    async consultar(req: Request, res: Response){
         try{   
-            res.send("Consultar estudiantes");
+        const data = await AppDataSource.getRepository(Estudiante).find();
+        res.status(200).json(data);
         } catch(err) {
             if (err instanceof Error)
             res.status(500).send(err.message); 
         }
     }
 
-    consultarDetalle(req: Request, res: Response){
-        try{   
-            res.send("Consultar detalle");
+    async consultarDetalle(req: Request, res: Response){
+        const { id } = req.params; 
+        try{  
+            const registro= await AppDataSource.getRepository(Estudiante).findOneBy({ id: Number(id) });
+           if(!registro) {
+            throw new Error('Estudiante no encontrado');
+           } 
+            res.status(200).json(registro);
         } catch(err) {
             if (err instanceof Error)
             res.status(500).send(err.message); 
         }
     }
 
-    ingresar(req: Request, res: Response){
+    async ingresar(req: Request, res: Response){
          try{   
-            res.send("Ingresar");
+            const registro= await AppDataSource.getRepository(Estudiante).save(req.body);
+            res.status(201).json(registro);
         } catch(err) {
             if (err instanceof Error)
             res.status(500).send(err.message); 
         }
     }
 
-    actualizar(req: Request, res: Response) {
+    async actualizar(req: Request, res: Response) {
+        const { id } = req.params; 
          try{   
-            res.send("Actualizar");
+            const registro = await AppDataSource.getRepository(Estudiante).findOneBy({ id: Number(id)});
+           if(!registro) {
+            throw new Error('Estudiante no encontrado');
+           } 
+            await AppDataSource.getRepository(Estudiante).update({ id: Number(id) }, req.body); 
+            const registroactualizado = await AppDataSource.getRepository(Estudiante).findOneBy({ id: Number(id) });
+            res.status(200).json(registroactualizado);
         } catch(err) {
             if (err instanceof Error)
             res.status(500).send(err.message); 
         }
     }
 
-    borrar(req: Request, res: Response){
+    async borrar(req: Request, res: Response){
+        const { id } = req.params; 
          try{   
-            res.send("Borrar");
+            const registro = await AppDataSource.getRepository(Estudiante).findOneBy({ id: Number(id)});
+           if(!registro) {
+            throw new Error('Estudiante no encontrado');
+           } 
+            await AppDataSource.getRepository(Estudiante).delete({ id: Number(id) }); 
+            res.status(204);
         } catch(err) {
             if (err instanceof Error)
             res.status(500).send(err.message); 
